@@ -73,6 +73,11 @@ char *input = read_line (user_input, 255, stdin);
 //*************************************************
 //	Taking Input End (max Regex input size is 254 byte or characters )
 //*************************************************	
+if(scanSpecialChar(input)){
+	printf("\nInput String can contain only This String : %s\n",input);
+}else{
+	
+}
 
 
 	

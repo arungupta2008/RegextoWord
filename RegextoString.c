@@ -5,7 +5,8 @@
 #include<stdlib.h>
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
-
+#define DOT_VALIDITY if((dot+1)==strlen(input)){printf("\n\n\n*****\n%s\n*****\n\n\nThankyou for Using this Regex ",out); exit(EXIT_SUCCESS);}
+//strlen gives length of characters in bytes dot+1 is taken
 
 /* 
 For taking input from command line and parsing and putting in to a buffer
@@ -36,7 +37,7 @@ char *read_line (char *buf, size_t length, FILE *f){
 } /* end read_line */
 
 
-int scanSpecialChar(char *input){
+int scanSpecialChar(const char *input){
 	int i = 0;
 	while(input[i] != '\0'){
 		//printf("\nout input[%d] = %c\t%d",i,input[i],input[i]);
@@ -48,7 +49,7 @@ int scanSpecialChar(char *input){
 	}
 	return 1;
 }
-int customized_Bracket_checker(char *input,int position,char bracket_type){
+int customized_Bracket_checker(const char *input,int position,char bracket_type){
 	if(bracket_type == 40){
 		bracket_type = 41;
 	}else if(bracket_type == 91){
@@ -69,13 +70,17 @@ int customized_Bracket_checker(char *input,int position,char bracket_type){
 /* Function
 it takes two strings initial and toadd and concatenate these two strings please enter with space 
 for Example parsed_output("Arun ","Gupta")
+this function expectes either Strings ("arun") or either pointer pointing to any string not
+parsed_output(out,input)
+not 
+parsed_output(*out,*input) here out and input are pointing to strings 
 output would be    Arun Gupta    Character array
 */
 char *parsed_output(const char *initial,const char *toadd) {
 
     const size_t initialLength     = strlen(initial);
-    const size_t to_beaddLength = strlen(toadd);
-    const size_t totalLength = initialLength + to_beaddLength;
+    const size_t to_be_adddLength = strlen(toadd);
+    const size_t totalLength = initialLength + to_be_adddLength;
 	char *const strBuf = malloc(totalLength + 1);
     if (strBuf == NULL) {
         fprintf(stderr, "malloc failed\n");
@@ -188,10 +193,10 @@ char* expand(const char* s)
     *out = 0; // null-terminate buf
     return strdup(buf);
 }
+
 /*
 For Substring with start position and end position
 */
-
 char *substring(const char *string, int Start_postion, int End_position) 
 {
    char *pointer;
@@ -232,13 +237,57 @@ char *parseBracket(const char *input , int Start_position, int End_position){
 		//Start_position			End_position
 		//int i = input[Start_position+1];
 		//char *intermediate_output
-		printf("\n\n\n****\n%s\n*****\n\n",expand(substring(input,Start_position,End_position)));
+		//printf("\n\n\n****\n%s\n*****\n\n",expand(substring(input,Start_position,End_position)));
+		return expand(substring(input,Start_position,End_position));
 		//Start from here 
 	}
-	char *bracket_parced_output = "arun";
-	return bracket_parced_output;
 }
 
+void parseInput(const char *input){
+	//printf("\nparseInput(const char *input)   %s\n",input);
+	//char *input_tmp = strdup(buf);
+	//here we are going to implement the behaviour or PerlREGEX
+	char buf[2048];
+	char *space = " ";
+    char* out = buf;
+	*out++ = *space;
+	if(scanSpecialChar(input)){
+	printf("\nRegex Returns true if given String contains this sub-string \"%s\"\n",parsed_output(out,input));
+	exit(EXIT_SUCCESS);
+	}else{
+		printf("\nGoing to handle special Char first\n");
+		//parseInput(input);
+		//is ^ char Present ?
+		int dot = 0;
+		if(input[dot] == '^'){
+			printf("\n At ^");
+			out = parsed_output(out," Substring starts with ");
+			//printf("\n At ^  %s",parsed_output(out," Substring starts with "));
+			printf("\n At ^  |%s|",buf);
+			DOT_VALIDITY;
+			++dot;
+		}
+		if(input[dot] == '(' || input[dot] == '['){
+			int end_position;
+			printf("\nBracket Type %d || %c ",input[dot],input[dot]);
+			end_position = customized_Bracket_checker(input,dot,input[dot]);
+			if(end_position != 0){
+				printf("\nEnd bracket is found at position %d",end_position);
+				
+				printf("\n\n\n****\n%s\n*****\n\n",parseBracket(input ,1, end_position));
+				//printf("Parsed Braket values\n");
+			}else{
+				printf("\nBracket End is not found");
+				exit(EXIT_FAILURE);
+			}
+		}
+		/*if(input[dot] == 36){
+			printf("Regex Contains this regex only");
+		}*/
+		
+		//is $ char present ?
+	}
+}
 
 main(){
 /*
@@ -365,7 +414,11 @@ char *final_output_data;
 	//fgets(user_input, 255, stdin);
 	//printf("|%s|",user_input);
 	//it also takes the \n as a input 
-char *input = read_line (user_input, 255, stdin);
+	char *input = read_line (user_input, 255, stdin);
+	if(strlen(input)==0){
+		printf("\nPlease Enter The Correct String \n");
+		exit(EXIT_FAILURE);
+	}
 	printf("\n*****%s*****\n",user_input);
 	printf("\n*****%s*****\n",input);
 	//char input_ = '\0';
@@ -374,33 +427,11 @@ char *input = read_line (user_input, 255, stdin);
 //	Taking Input End (max Regex input size is 254 byte or characters )
 //*************************************************	
 // For Testing purpose
-//printf("\n\n\n%s\n\n\n",parsed_output("  Arun  ","Gupta"));
+//input = parsed_output(input,"  Gupta");
+//printf("\n\n\n%s\n\n\n",input);
 //printf("\n\n\n%s\n\n\n",parseBracket("[a-c]",0,4));
 //printf("\n\n\n%s\n\n\n",expand("[a-z]"));
-if(scanSpecialChar(input)){
-	printf("\nRegex Returns true if given String contains this sub string \"%s\"\n",parsed_output("",input));
-}else{
-	printf("\nGoing to handle special Char first\n");
-	//is ^ char Present ?
-	if(input[0] == '^'){
-		int end_position;
-		if(input[1] == 40 || input[1] == 91){
-			printf("\nBracket Type %d || %c ",input[1],input[1]);
-			end_position = customized_Bracket_checker(input,1,input[1]);
-			if(end_position != 0){
-				printf("\nEnd bracket is found at position %d",end_position);
-				parseBracket(input ,1, end_position);
-				//printf("Parsed Braket values\n");
-			}else{
-				printf("\nBracket End is not found");
-			}
-		}
-		if(input[end_position+1] == 36){
-			printf("Regex Contains this regex only");
-		}
-	}
-	//is $ char present ?
-}
+parseInput(input);
 
 
 

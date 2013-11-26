@@ -5,9 +5,28 @@
 #include<stdlib.h>
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
-#define DOT_VALIDITY if((dot+1)==strlen(input)){printf("\n\n\n*****\n%s\n*****\n\n\nThankyou for Using this Regex ",out); exit(EXIT_SUCCESS);}
+#define DOT_VALIDITY if((dot+1)==strlen(input)){ exit_(EXIT_SUCCESS);}
+#define COPY tmp_[1] = '\0'; tmp_[0] = input[dot];
 //strlen gives length of characters in bytes dot+1 is taken
+/*
+Global Variables 
+*/
+//For Space
+char *space = " ";
+char final_output_data[2048];
 
+/*
+	For Exit from The system if not failure.	
+*/
+void exit_(int val){
+	if(val == EXIT_FAILURE){
+		printf("\n\nThere is some error in Regex\n\n");
+		exit(EXIT_FAILURE);
+	}else if(val == EXIT_SUCCESS){
+		printf("\n\n\n*****\n%s\n*****\n\n\nThank you !! for Using this Regex \n\n",final_output_data); 
+		exit(EXIT_SUCCESS);
+	}
+}
 /* 
 For taking input from command line and parsing and putting in to a buffer
 */
@@ -91,9 +110,15 @@ char *parsed_output(const char *initial,const char *toadd) {
 	return strBuf;
 
 }
-
-
 /*
+	Validates [a-z][A-Z][0-9]
+*/
+void Check_range_Validity(const char* s){
+	if((*(s+1)>*(s+3))||((*(s+1)<='Z' && *(s+1)>='A') && (*(s+3)<='z' && *(s+3)>='a'))) exit_(EXIT_FAILURE);
+	//   if [9-1]or for all or  a-Z||           case Z-a              
+}
+
+/* 
 Help Doc
 //http://stackoverflow.com/questions/7985661/method-for-expand-a-z-to-abc-xyz-form
 //http://stackoverflow.com/questions/5921609/what-is-predicate-in-c
@@ -125,11 +150,12 @@ output: 'This is some efghijklmnopqrstuvwxyz test in 567 steps; this works: abc.
 input : '-x-s a-9 9- a-k-9 9-a-c-7-3'
 output: '-stuvwx a-9 9- abcdefghijk-9 9-abc-34567'
 */
-int alpha_range(char c) { return (((c>='a') && (c<='z'))|| ((c>='A') && (c<='Z'))); }
+int alpha_range(char c) { printf("\nCharacter ::|%c|",c);return (((c>='a') && (c<='z'))|| ((c>='A') && (c<='Z'))); }
 int digit_range(char c) { return (c>='0') && (c<='9'); }
 char* expand(const char* s)
 {
-	
+	Check_range_Validity(s);
+	printf("\nString At \" expand(const char* s)\"\t|%s|",s);
     char buf[2048];
 	char *space = " ";
     const char* in  = s;
@@ -142,7 +168,8 @@ char* expand(const char* s)
 
     // init
     *out = 0;
-
+	*out++ = *in;
+	++in;
     while (*in)
     {
 		//printf(" \nwhile (*in)  %c\n",*in);
@@ -194,6 +221,40 @@ char* expand(const char* s)
     return strdup(buf);
 }
 
+/* 
+	Parses lower bracket :D  Example      (Arun|sdfdsf|sfsdf|adfsdf)
+	 [ Arun sdfdsf sfsdf adfsdf ]
+*/
+char* parseBracket_lower(const char* s){
+	char buf[2048];
+    const char* in  = s;
+    char* out = buf;
+	printf("\n\n|%s|\n\n",s);
+	*out++ = '[';
+	*out++ = *space;
+	++in;
+	while (*in){
+		if(*in == '\\'){
+			*out++ = *(++in);
+			++in;	
+		}else if(*in == '|'){
+			*out++ = *space;
+			++in;
+		}else{
+			*out++ = *in;
+			++in;
+		}
+		if(*in == ')'){
+			break;
+		}
+	}
+	*out++ = *space;
+	*out++ = ']';
+	*out++ = '\0';
+	*out = 0; // null-terminate buf // use this line as default it csn reduce the lines 
+    return strdup(buf);
+}
+
 /*
 For Substring with start position and end position
 */
@@ -239,7 +300,15 @@ char *parseBracket(const char *input , int Start_position, int End_position){
 		//char *intermediate_output
 		//printf("\n\n\n****\n%s\n*****\n\n",expand(substring(input,Start_position,End_position)));
 		return expand(substring(input,Start_position,End_position));
-		//Start from here 
+	}
+	if(input[Start_position] == '('){
+		// 45 -
+		//(A|B|C|D|)
+		//Start_position			End_position
+		//int i = input[Start_position+1];
+		//char *intermediate_output
+		//printf("\n\n\n****\n%s\n*****\n\n",expand(substring(input,Start_position,End_position)));
+		return parseBracket_lower(substring(input,Start_position,End_position));
 	}
 }
 
@@ -247,45 +316,76 @@ void parseInput(const char *input){
 	//printf("\nparseInput(const char *input)   %s\n",input);
 	//char *input_tmp = strdup(buf);
 	//here we are going to implement the behaviour or PerlREGEX
-	char buf[2048];
-	char *space = " ";
-    char* out = buf;
+	//char buf[2048];
+	//char final_output_data[2048];
+	//char *space = " ";
+    char* out = final_output_data;
 	*out++ = *space;
+	char *tmp_[2];
 	if(scanSpecialChar(input)){
 	printf("\nRegex Returns true if given String contains this sub-string \"%s\"\n",parsed_output(out,input));
-	exit(EXIT_SUCCESS);
+	exit(EXIT_SUCCESS); //direct Exit
 	}else{
-		printf("\nGoing to handle special Char first\n");
-		//parseInput(input);
-		//is ^ char Present ?
 		int dot = 0;
-		if(input[dot] == '^'){
-			printf("\n At ^");
-			out = parsed_output(out," Substring starts with ");
-			//printf("\n At ^  %s",parsed_output(out," Substring starts with "));
-			printf("\n At ^  |%s|",buf);
+		printf("\nGoing to handle special Char first\n");
+		while(*input){
+			//parseInput(input);
+			//is ^ char Present ?
+			if(input[dot] == '^'){
+				out = parsed_output(out," Substring starts with ");
+				strcpy(final_output_data,out);
+				//printf("\n At ^  %s",parsed_output(out," Substring starts with "));
+				//printf("\n At ^  |%s|\n",out);
+				DOT_VALIDITY;
+				++dot;
+			}
+			if(input[dot] == '(' || input[dot] == '['){
+				int end_position;
+				printf("\nBracket Type %c ",input[dot]);
+				end_position = customized_Bracket_checker(input,dot,input[dot]);
+				if(end_position != 0){
+					printf("\nEnd bracket is found at position %d",end_position);
+				
+					//printf("\n\n\n****\n%s\n*****\n\n",parseBracket(input ,dot, end_position));
+					out = parsed_output(out,parseBracket(input ,dot, end_position));
+					//printf("\n\n\n****\n%s\n*****\n\n",out);
+					//final_output_data = out;
+					strcpy(final_output_data,out);
+					//start from here 
+					//printf("\n\n\n****\n%s\n*****\n\n",final_output_data);				
+					//printf("Parsed Braket values\n");
+				}else{
+					printf("\nBracket End is not found");
+					exit_(EXIT_FAILURE);
+				}
+				dot = end_position;
+				DOT_VALIDITY;
+				++dot;
+
+			}
+			//if String is simple String 
+			if(input[dot] == '\\')   // here "\\" means it will check in String whether it have  something \ in the string :D remmeber 
+				++dot;
+			//printf("\nCurrent Position %d :: current Character  %c\n",dot,input[dot]);
+			//tmp = &input[dot];
+			COPY;
+			out = parsed_output(out,&tmp_);
+			strcpy(final_output_data,out);
 			DOT_VALIDITY;
 			++dot;
-		}
-		if(input[dot] == '(' || input[dot] == '['){
-			int end_position;
-			printf("\nBracket Type %d || %c ",input[dot],input[dot]);
-			end_position = customized_Bracket_checker(input,dot,input[dot]);
-			if(end_position != 0){
-				printf("\nEnd bracket is found at position %d",end_position);
-				
-				printf("\n\n\n****\n%s\n*****\n\n",parseBracket(input ,1, end_position));
-				//printf("Parsed Braket values\n");
-			}else{
-				printf("\nBracket End is not found");
-				exit(EXIT_FAILURE);
+			/*if(input[dot] == 36){
+				printf("Regex Contains this regex only");
+			}*/
+			//is $ char present ?
+			//End of File (EOF)
+			if(input[dot] == '\0'){
+				break;
 			}
 		}
-		/*if(input[dot] == 36){
-			printf("Regex Contains this regex only");
-		}*/
+		strcpy(final_output_data,out);
+		exit_(EXIT_SUCCESS);
 		
-		//is $ char present ?
+		
 	}
 }
 
@@ -297,6 +397,8 @@ http://www.troubleshooters.com/codecorn/littperl/perlreg.htm
 
 http://www.troubleshooters.com/codecorn/littperl/perlreg.htm
 
+
+http://regexpal.com/
 To implement 
 
 
@@ -405,7 +507,6 @@ Example 11.
 /*
 Final Out put String
 */
-char *final_output_data;
 
 /* *************************************************
 //	Taking Input
@@ -437,7 +538,9 @@ parseInput(input);
 
 
 
-	
-	
+// to Test
+//  ^[ariunA-Z]  in the link
+// here this means starts with any of these charecters 
+//for Example either A or B or C or D any but only one charecters 
 return 0;
 }

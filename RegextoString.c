@@ -96,7 +96,8 @@ parsed_output(*out,*input) here out and input are pointing to strings
 output would be    Arun Gupta    Character array
 */
 char *parsed_output(const char *initial,const char *toadd) {
-
+	printf("\nFirst String to add :: |%s|",initial);
+	printf("\nSecond String to add :: |%s|",toadd);
     const size_t initialLength     = strlen(initial);
     const size_t to_be_adddLength = strlen(toadd);
     const size_t totalLength = initialLength + to_be_adddLength;
@@ -111,10 +112,25 @@ char *parsed_output(const char *initial,const char *toadd) {
 
 }
 /*
-	Validates [a-z][A-Z][0-9]
+	Validates Character-Character
+	Ex. A-z  it will return true if any start_character < Ens character  only 
 */
-void Check_range_Validity(const char* s){
-	if((*(s+1)>*(s+3))||((*(s+1)<='Z' && *(s+1)>='A') && (*(s+3)<='z' && *(s+3)>='a'))) exit_(EXIT_FAILURE);
+void Check_range_Validity(const char* s,int dot){
+	printf("\nAt Check Validity Function with String |%s| with position %d",s,dot);
+	int i=0,j=2;
+	// for case \[-z
+	if(*(s+dot) == '\\'){ 
+		++i;
+		// for case \[-\]
+		if(*(s+i+j+dot) == '\\'){
+			j = j+i+1;
+		} 		
+	// for case A-\]			
+	}else if(*(s+j+dot) == '\\'){
+		j = j+1;
+	}
+	printf("\n*(s+i+dot) :::|%c|\t *(s+j+dot) :::: |%c|%d|",*(s+i+dot),*(s+j+dot),*(s+j+dot));
+	if(*(s+i+dot)>*(s+j+dot)) exit_(EXIT_FAILURE);
 	//   if [9-1]or for all or  a-Z||           case Z-a              
 }
 
@@ -154,13 +170,13 @@ int alpha_range(char c) { printf("\nCharacter ::|%c|",c);return (((c>='a') && (c
 int digit_range(char c) { return (c>='0') && (c<='9'); }
 char* expand(const char* s)
 {
-	Check_range_Validity(s);
+	printf("\nValues at expand :: |%s|",s);
 	printf("\nString At \" expand(const char* s)\"\t|%s|",s);
     char buf[2048];
-	char *space = " ";
     const char* in  = s;
     char* out = buf;
 	*out++ = *space;
+	int dot = 0;
 		  		
     // parser state
     int (*predicate)(char) = 0; // either: NULL (free state), alpha_range (in alphabetic range), digit_range (in digit range)
@@ -168,55 +184,65 @@ char* expand(const char* s)
 
     // init
     *out = 0;
-	*out++ = *in;
-	++in;
     while (*in)
     {
-		//printf(" \nwhile (*in)  %c\n",*in);
+		printf(" \nwhile (*in)  %c\n",*in);
+		if(*in == '\\'){
+			++in;
+			++dot ;
+		}
         if (!predicate)
         {
-            // free parsing state
-            if (alpha_range(*in) && (in[1] == '-') && alpha_range(in[2]))
-            {
-				//printf(" \n(in[1] == '-')  %c\n",in[1]);
-				//printf(" \nalpha_range(in[2]) %c\n",in[2]);
-				//printf(" \nwhile (*in)%c\n",*in);
-                lower = upper = *in++;
-                predicate = &alpha_range;
-            }
-            else if (digit_range(*in) && (in[1] == '-') && digit_range(in[2]))
-            {
-                lower = upper = *in++;
-                predicate = &digit_range;
-            } 
-            else {
+				printf("\npredicate ::|%c|",predicate);
+				// free parsing state
+				if (in[1] == '-' && in[2] != '\0')
+				{
+					
+					printf(" \n(in[1] == '-')  %c\n",in[1]);
+					printf(" \nalpha_range(in[2]) |%c|%d|\n",in[2],in[2]);
+					Check_range_Validity(s,dot);
+					printf(" \nwhile (*in)%c\n",*in);
+					lower = upper = *in++;
+					dot++;
+					predicate = &alpha_range;
+				}
+				//else if (digit_range(*in) && (in[1] == '-') && digit_range(in[2]))
+				//{
+				//	Check_range_Validity(s,dot);
+				//	lower = upper = *in++;
+				//	++dot;
+				//	predicate = &digit_range;
+				//} 
+				else {
+					*out++ = *space;
+					*out++ = *in;
+				}//here *in means value pointed by *in is putted in to *out++ 
+		}else{ 
+			// in a range
+			printf(" \n(*in < lower) lower = *in;  %c\n",*in);
+			if (*in < lower) lower = *in;
+			if (*in > upper) upper = *in;
+			printf(" \n(in[1] == '-' && predicate(in[2]))  |%c|     |%c|\n",in[1],in[2]);
+			if (in[1] == '-' && predicate(in[2])) {
+				in++;
+				dot++;// more coming
+			}else
+			{
+				// end of range mode, dump expansion
+				char c;
 				*out++ = *space;
-				*out++ = *in;
-			}//here *in means value pointed by *in is putted in to *out++ 
-        } else
-        { 
-            // in a range
-			//printf(" \n(*in < lower) lower = *in;  %c\n",*in);
-            if (*in < lower) lower = *in;
-            if (*in > upper) upper = *in;
-			//printf(" \n(in[1] == '-' && predicate(in[2]))  |%c|     |%c|\n",in[1],in[2]);
-            if (in[1] == '-' && predicate(in[2])) 
-                in++; // more coming
-            else
-            {
-                // end of range mode, dump expansion
-                char c;
-				*out++ = *space;
-                for (c=lower; c<=upper; ){
+				for (c=lower; c<=upper; ){
+					printf("%c",c);	
 					*out++ = c++;
 					*out++ = *space;
 				}
-                predicate = 0;
-            }
-        }
+				predicate = 0;
+			}
+		}
         in++;
+		dot++;
     }
-
+	printf("\n|%s|\n",buf);
     *out = 0; // null-terminate buf
     return strdup(buf);
 }
@@ -260,27 +286,28 @@ For Substring with start position and end position
 */
 char *substring(const char *string, int Start_postion, int End_position) 
 {
-   char *pointer;
-   int c;
+	printf("\nValues at substring with start %d  and  End position %d:: |%s|",Start_postion,End_position,string);
+	char *pointer;
+	int c;
 	End_position = End_position-Start_postion+1;
-   pointer = malloc(End_position+1);
- 
-   if (pointer == NULL)
-   {
-      printf("Unable to allocate memory.\n");
-      exit(1);
-   }
-   for (c = 0 ; c < Start_postion; c++) 
-      string++; 
- 
-   for (c = 0 ; c < End_position ; c++)
-   {
-      *(pointer+c) = *string;      
-      string++;   
-   }
-   //adding EOF
-   *(pointer+c) = '\0';
-   return pointer;
+	pointer = malloc(End_position+1);
+	if (pointer == NULL)
+	{
+		printf("Unable to allocate memory.\n");
+		exit(1);
+	}
+	for (c = 0 ; c < Start_postion; c++) 
+		string++; 
+	
+	for (c = 0 ; c < End_position ; c++)
+	{
+		*(pointer+c) = *string;      
+		string++;   
+	}
+	//adding EOF
+	*(pointer+c) = '\0';
+	printf("\nOutput of Substring |%s|",pointer);
+	return pointer;
 }
 
 
@@ -292,6 +319,10 @@ but [Arun] means substring containing  A or r or u or n
 
 */
 char *parseBracket(const char *input , int Start_position, int End_position){
+	char except[25] = "Except these Characters ";
+	char buf[2048];
+    char* out = buf;
+	printf("\nValues at parseBracket with start %d  and  End position %d:: |%s|",Start_position,End_position,input);
 	if(input[Start_position] == '['){ 
 		// 45 -
 		// [ 				A-Z 			]
@@ -299,7 +330,21 @@ char *parseBracket(const char *input , int Start_position, int End_position){
 		//int i = input[Start_position+1];
 		//char *intermediate_output
 		//printf("\n\n\n****\n%s\n*****\n\n",expand(substring(input,Start_position,End_position)));
-		return expand(substring(input,Start_position,End_position));
+		out = parsed_output(out,"[ ");
+		printf("\n|%s|\n",buf);
+		if(input[Start_position+1] == '^'){
+			printf("\nNegation found");
+			out = parsed_output(out,&except);
+			out = parsed_output(out,expand(substring(input,Start_position+2,End_position-1)));
+		}else{
+			out = parsed_output(out,expand(substring(input,Start_position+1,End_position-1)));
+		}
+		printf("\n|%s|\n",buf);
+		out = parsed_output(out,"] ");
+		//*out = 0; // null-terminate buf
+		printf("\n|%s|\n",buf);
+		//return strdup(buf);
+		return out;
 	}
 	if(input[Start_position] == '('){
 		// 45 -

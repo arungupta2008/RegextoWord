@@ -1,11 +1,11 @@
 #include<stdio.h>
-#include <string.h>
+#include<string.h>
 
 //this is for malloc exit for now
 #include<stdlib.h>
 #define EXIT_FAILURE 1
 #define EXIT_SUCCESS 0
-#define DOT_VALIDITY if((dot+1)==strlen(input)){ return final_output_data;}
+#define DOT_VALIDITY if((dot+1)==strlen(input)){ goto RETURN;}
 #define COPY tmp_[1] = '\0'; tmp_[0] = input[dot];
 #define YES 1
 #define NO 0
@@ -26,6 +26,7 @@ Global Variables
 //For Space
 char *space = " ";
 char *or = " or ";
+char *hiphen= " - ";
 //char final_output_data[2048];
 
 /*
@@ -208,16 +209,161 @@ output: 'This is some efghijklmnopqrstuvwxyz test in 567 steps; this works: abc.
 input : '-x-s a-9 9- a-k-9 9-a-c-7-3'
 output: '-stuvwx a-9 9- abcdefghijk-9 9-abc-34567'
 */
+/*
+ * It Expands it like a b c d e it's an example only
+ * */
+char *expandit(char start,char end){
+		if(start == end)
+		return &start;
+		printf("in Expand it with %c and %c\n",start,end);
+		char buffer[2048] = {'\0'};
+		char *out;
+		out = buffer;
+		for(start;start<end;start++){
+			*out++=start;
+			*out++=' ';
+			}
+	*out++='\0';
+	*out = NULL; // null-terminate buf // use this line as default it csn reduce the lines
+	//*buffer = NULL;
+	printf("\nIn Expand it with returning values :%s\n",buffer);
+    return strdup(buffer);
+	}
+/*
+ * It Opens the Stream [a to z]
+ * */
+char *openit(char start,char end){
+		printf("\nin Open it with %c and %c\n",start,end);
+		if(start == end)
+		return &start;
+		char buffer[15] = {'\0'};
+		char *out;
+		out = buffer;
+		*out++='[';
+		*out++=start;
+		//printf("in Open it with %c and %c\n",start,end);
+		*out++=' ';
+		//*out++='t';
+		//*out++='o';
+		*out++='-';
+		*out++=' ';
+		*out++=end;
+		//*out++=' ';
+		*out++=']';
+		//*out++=' ';
+		*out++='\0';
+		*out = NULL; // null-terminate buf // use this line as default it csn reduce the lines
+		//*buffer = NULL;
+		printf("\nIn Openit it with returning values :%s\n",buffer);
+		return strdup(buffer);
+}
+char *get_the_trimed_output(char *input){
+		char buffer[2048] = {'\0'};
+		char *out;
+		out = buffer;
+		char start = input[0];
+		char tmp=start;
+		char end= input[2];
+		printf("\nAt get_the_trimed_output() with input : %s",input);
+		if(start < end){
+		if(start<'0' && end<='0'){ // for case start 0 to 48 and end <=48
+				//printf("In if(start<0 && end<=0){ \n");
+				//buffer = expandit(input[0],end);
+				printf("\nCASE 1\n");
+				parsed_output(&buffer,expandit(start,end));
+				return buffer;
+			}
+		else if(start<'0' && end>'0'){ // for case start 0 to 48 and end>48  go more further.
+				//buffer = expandit(input[0],'0');
+				printf("\nCASE 2\n");
+				parsed_output(&buffer,expandit(start,'0'));
+				start = '0';
+			}
+		if(end<='9' && start<end && start >='0' ){
+				printf("\nCASE 3\n");
+				//buffer = openit(start,end);
+				//printf("\n%s\n",openit(start,end));
+				parsed_output(&buffer,openit(start,end));
+				return buffer;
+			}
+		else if(start < end && start>='0' && start<='9') { // for case
+				//buffer = openit(start,'9');
+				printf("\nCASE 4\n");
+				parsed_output(&buffer,openit(start,'9'));
+				start = '9'+1;
+			}
+		if(end<='A' && start < end && start >'9') {
+				printf("\nCASE 5\n");
+				//buffer = expandit(start,end);
+				parsed_output(&buffer,expandit(start,end));
+				//start = '9';
+				return buffer;
+			}
+		else if(end>'A' && start < end && start >'9' && start <'A') {
+				printf("\nCASE 6\n");
+				parsed_output(&buffer,expandit(start,'A'));
+				//buffer = expandit(start,'a');
+				start = 'A';
+		}//else if(end>'A' && start < end && start >'9' && start >='A') {
+		//			printf("\nCASE 14\n");
+		//			parsed_output(&buffer,openit(start,end));
+		//		}
+		if(end<'Z' && start < end){
+				printf("\nCASE 7\n");
+				//buffer = openit(start,end);
+				parsed_output(&buffer,openit(start,end));
+				return buffer;
+			}
+		else if(start < end && start<='A') {
+				printf("\nCASE 8\n");
+				parsed_output(&buffer,openit(start,'Z'));
+				//buffer = openit(start,'z');
+				start = 'Z'+1;
+			}
+		if(end<='a' && start < end && start>='Z' ) {
+				printf("\nCASE 9\n");
+				//buffer = expandit(start,end);
+				parsed_output(&buffer,expandit(start,end));
+				//start = 'a';
+				return buffer;
+			}
+		else if(end>'a' && start < end && start>'Z' && start < 'a') {
+				printf("\nCASE 10\n");
+				parsed_output(&buffer,expandit(start,'a'));
+				//buffer = expandit(start,'A');
+				start = 'a';
+			}
+		if(end<'z' && start < end && start >= 'a'){
+				printf("\nCASE 11\n");
+				//buffer = openit(start,end);
+				parsed_output(&buffer,openit(start,end));
+				return buffer;
+			}
+		else if(start < end && start<='z') {
+				printf("\nCASE 12\n");
+				//buffer = openit(start,'Z');
+				parsed_output(&buffer,openit(start,'z'));
+				start = 'z'+1;
+			}
+		if(start < end){
+		printf("\nCASE 13\n");
+		//buffer = expandit(start,end);
+		parsed_output(&buffer,expandit(start,end));
+		}
+	}else if(start == end){
+			return &start;
+		}
+return buffer;
+	}
 int alpha_range(char c) { printf("\nCharacter ::|%c|",c);return (((c>='a') && (c<='z'))|| ((c>='A') && (c<='Z'))); }
 int digit_range(char c) { return (c>='0') && (c<='9'); }
-char* expand(const char* s)
-{
+char* expand(const char* s){
 	printf("\nValues at expand :: |%s|",s);
 	printf("\nString At \" expand(const char* s)\"\t|%s|",s);
-    char buf[2048];
+    char buf[2048]  = {'\0'};
     const char* in  = s;
     char* out = buf;
-	*out++ = *space;
+	//*out++ = *space;
 	int dot = 0;
 
     // parser state
@@ -256,28 +402,45 @@ char* expand(const char* s)
 				//	predicate = &digit_range;
 				//}
 				else {
-					*out++ = *space;
 					*out++ = *in;
+					*out++ = *space;
 				}//here *in means value pointed by *in is putted in to *out++
 		}else{
 			// in a range
-			printf(" \n(*in < lower) lower = *in;  %c\n",*in);
+			//printf(" \n(*in < lower) lower = *in;  %c\n",*in);
 			if (*in < lower) lower = *in;
 			if (*in > upper) upper = *in;
-			printf(" \n(in[1] == '-' && predicate(in[2]))  |%c|     |%c|\n",in[1],in[2]);
+			//printf(" \n(in[1] == '-' && predicate(in[2]))  |%c|     |%c|\n",in[1],in[2]);
 			if (in[1] == '-' && predicate(in[2])) {
 				in++;
 				dot++;// more coming
-			}else
-			{
+			}else{
 				// end of range mode, dump expansion
 				char c;
-				*out++ = *space;
-				for (c=lower; c<=upper; ){
+				//*out++ = *space;
+				printf("Lower |%c| \t Upper |%c|\n",lower,upper);
+				char input[4];
+				input[0]= lower;
+				input[1]= '-';
+				input[2]= upper;
+				input[3]= '\0';
+				parsed_output(&buf,get_the_trimed_output(input));
+				/*for (c=lower; c<=upper; ){
 					printf("%c",c);
+					//start from here
+					/*if((c>96 && upper<123) || (c>65 && upper<90) || (c>48 && upper<57)){
+							// we can write it in limit
+							*out++ = lower;
+							*out++ = *space;
+							*out++ = *hiphen;
+							*out++ = upper;
+						} \*//*
 					*out++ = c++;
 					*out++ = *space;
-				}
+				}*/
+				out = buf;
+				while(*out != '\0')
+				out++;
 				predicate = 0;
 			}
 		}
@@ -299,13 +462,15 @@ char* parseBracket_lower(const char* s){
     char* out = buffer;
     int dot=0;
 	int end_position=0;
+	*out = NULL; // null-terminate buf // use this line as default it csn reduce the lines
+	*buffer = NULL;
 	printf("\n\n|%s|\n\n",s);
 	printf("\n Going to parseInput again String  :: |%c| |%c|",*in,*(in+strlen(s)-1));
 	parsed_output(&buffer," ");
 	return parsed_output(&buffer,parseInput(substring(s,1,(strlen(s)-1-1))));
 	*out++ = '[';
 	//printf("\nParsed output for internal brackets :: |%s|",*out);
-	*out++ = *space;
+	//*out++ = *space;
 	//printf("\nParsed output for internal brackets :: |%s|",*out);
 	//parsed_output(&buffer," [");
 	printf("\nParsed output for internal brackets by buffer:: |%s|",buffer);
@@ -355,7 +520,8 @@ char* parseBracket_lower(const char* s){
 	*out++ = ']';
 	*out++ = '\0';
 	printf("\nReply by  parseBracket_lower:: |%s|",out);
-	*out = 0; // null-terminate buf // use this line as default it csn reduce the lines
+	*out = NULL; // null-terminate buf // use this line as default it csn reduce the lines
+	*buffer = NULL;
 
     return strdup(buffer);
 }
@@ -363,8 +529,7 @@ char* parseBracket_lower(const char* s){
 /*
 For Substring with start position and end position
 */
-char *substring(const char *string, int Start_postion, int End_position)
-{
+char *substring(const char *string, int Start_postion, int End_position){
 	printf("\nValues at substring with start %d  and  End position %d:: |%s|",Start_postion,End_position,string);
 	char *pointer;
 	int c;
@@ -398,7 +563,7 @@ but [Arun] means substring containing  A or r or u or n
 
 */
 char *parseBracket(const char *input , int Start_position, int End_position){
-	char except[25] = "Except these Characters ";
+	char except[25] = "match a single character not present in the list\n";
 	char buf[2048];
     char* out = buf;
 	printf("\nValues at parseBracket with start %d  and  End position %d:: |%s|",Start_position,End_position,input);
@@ -409,7 +574,7 @@ char *parseBracket(const char *input , int Start_position, int End_position){
 		//int i = input[Start_position+1];
 		//char *intermediate_output
 		//printf("\n\n\n****\n%s\n*****\n\n",expand(substring(input,Start_position,End_position)));
-		parsed_output(&buf,"[ ");
+		parsed_output(&buf,"[");
 		printf("\n|%s|\n",buf);
 		if(input[Start_position+1] == '^'){
 			printf("\nNegation found");
@@ -418,6 +583,7 @@ char *parseBracket(const char *input , int Start_position, int End_position){
 			parsed_output(&buf,expand(substring(input,Start_position+2,End_position-1)));
 		}else{
 			// Here () is detected
+			parsed_output(&buf," match a single character present in the list below\n");
 			parsed_output(&buf,expand(substring(input,Start_position+1,End_position-1)));
 		}
 		printf("\n|%s|\n",buf);
@@ -425,6 +591,8 @@ char *parseBracket(const char *input , int Start_position, int End_position){
 		//*out = 0; // null-terminate buf
 		printf("\n|%s|\n",buf);
 		//return strdup(buf);
+		*buf = NULL;
+		//*out = 0; // null-terminate buf
 		return out;
 	}
 	if(input[Start_position] == '('){
@@ -444,10 +612,15 @@ char *parseInput(const char *input){
 	//here we are going to implement the behaviour or PerlREGEX
 	//char buf[2048];
 	char final_output_data[2048];
+	int Increment_the_Dot=NO;
 	int change = NO;
 	//char *space = " ";
         char* out = final_output_data;
 	*out++ = *space;
+	*final_output_data	 = NULL;
+	int Next_char_have_special_meaning=NO;
+	int Current_char_found=NO;
+	*out = NULL;
 	char tmp_[2],*out_int;
 	//strcpy (str2,str1);
 	if(scanSpecialChar(input)){
@@ -457,28 +630,103 @@ char *parseInput(const char *input){
 		int dot = 0;
 		printf("\nGoing to handle special Char first\n");
 		while(*input){
+			While_LOOP :
+			change = NO;
+			Increment_the_Dot=YES;
+			 Next_char_have_special_meaning=NO;
+			 Current_char_found=NO;
 			out_int = NULL;
 			printf("\nCurrent Charecter |%c|\n", input[dot]);
+			if(input[dot] == '\\'){
+					printf("\n\nFound Special Char|%d\n\n",dot);
+					Next_char_have_special_meaning=YES;
+					++dot;
+				}
+			/*
+			 * If any Charecter does not falles to this case then all the carecter are treated as non special charecter. even they are anything.
+			 */
+			if(Next_char_have_special_meaning==YES){
+				switch(input[dot]){
+						case 'W' :
+							// [^A-Za-z0-9_] next charecter should a non word charecter.
+							parsed_output(&final_output_data,"[Except A to Z  a to z  0 to 9 and _]");
+							Current_char_found=YES;
+						break;
+						case 'w' :
+							// [A-Za-z0-9_] next charecter should a word A-Z or a-z charecter.
+							parsed_output(&final_output_data," Charecter is 'word' charecter ");
+							Current_char_found=YES;
+						break;
+						case 's' :
+							// Next charecter essentially a white space " "
+							parsed_output(&final_output_data," Charecter is White Space");
+							Current_char_found=YES;
+						break;
+						case 'S' :
+							// Next charecter essentially a Non White white space " "
+							parsed_output(&final_output_data," Charecter is Non White Space");
+							Current_char_found=YES;
+						break;
+						case 'd' :
+							// Next charecter is a digit only
+							parsed_output(&final_output_data," Charecter is Digit Only");
+							Current_char_found=YES;
+						break;
+						case 'D' :
+							parsed_output(&final_output_data," Charecter is Non Digit");
+							Current_char_found=YES;
+							// Next charecter is a non-digit only
+						break;
+						default :
+							Current_char_found=NO;
+						break;
+					}
+				//IF current charecter included in this then it have special meaning otherwise either '\' make any special charecter to normal charecter
+				if(Current_char_found == YES){
+					++dot;
+					change = YES;
+					goto While_LOOP;
+					//Increment_the_Dot=NO;
+					}
+				/*
+				 * These words have special meanings
+				 * Start from here
+				 * /s /W /w
+				 *
+				\W        [3]  Match a non-"word" character
+				\s        [3]  Match a whitespace character [ \t\r\n\v\f]
+				\S        [3]  Match a non-whitespace character
+				\d        [3]  Match a decimal digit character
+				\D        [3]  Match a non-digit character
+				\a (for Vim only) [A-Za-z]
+				\S [^ \t\r\n\v\f]
+				* \x [A-Fa-f0-9] Hexadecimal charecters only
+				* \u [A-Z] Capital letters (for VIM only)
+				* \l (For vim Only)[a-z]
+				 */
+				}
 			//parseInput(input);
 			//is ^ char Present ?
-			if(input[dot] == '^'){
-				parsed_output(&final_output_data," Substring starts with ");
+			if((input[dot] == '^') && (Next_char_have_special_meaning == NO)){
+				parsed_output(&final_output_data,"Substring starts with ");
 				//out = final_output_data;
 				//printf("\n At ^  %s",parsed_output(out," Substring starts with "));
 				printf("\n At ^  |%s|\n",&out);
 				DOT_VALIDITY;
 				++dot;
+				goto While_LOOP;
 			}
-			if(input[dot] == '(' || input[dot] == '['){
+			if((input[dot] == '(' || input[dot] == '[') && (Next_char_have_special_meaning == NO)){
 				int end_position;
-				out = parsed_output(&final_output_data," and ");
 				printf("\nBracket Type %c ",input[dot]);
 				end_position = customized_Bracket_checker(input,dot,input[dot]);
 				if(end_position != 0){
 					printf("\nEnd bracket is found at position %d",end_position);
 
 					//printf("\n\n\n****\n%s\n*****\n\n",parseBracket(input ,dot, end_position));
-					out = parsed_output(&final_output_data,parseBracket(input ,dot, end_position));
+					parsed_output(&final_output_data,parseBracket(input ,dot, end_position));
+					change = YES;
+					//out = parsed_output(&final_output_data," and ");
 					//printf("\n\n\n****\n%s\n*****\n\n",out);
 					//final_output_data = out;
 					//strcpy(final_output_data,out);
@@ -491,32 +739,40 @@ char *parseInput(const char *input){
 				}
 				dot = end_position;
 				DOT_VALIDITY;
+				out = parsed_output(&final_output_data," and ");
 				++dot;
+				goto While_LOOP;
 
-			}if(input[dot] == '|' ){
-				out = parsed_output(&final_output_data," or ");
+			}if((input[dot] == '|' )&& (Next_char_have_special_meaning == NO)){
+				parsed_output(&final_output_data," or ");
+				++dot;
 				change = YES;
+				goto While_LOOP;
 				//strcpy(out_int,&or);
 				//int end_position;
 				//end_position = customized_Bracket_checker_(input,dot,input[dot]);
 				//out = parsed_output(&final_output_data,parseInput(substring(input,dot+1,end_position)));
 			}
 			//if String is simple String
-			if(input[dot] == '\\')   // here "\\" means it will check in String whether it have  something \ in the string :D remmeber
-				++dot;
+			//if(input[dot] == '\\')   // here "\\" means it will check in String whether it have  something \ in the string :D remmeber
+			//	++dot;
 			//printf("\nCurrent Position %d :: current Character  %c\n",dot,input[dot]);
 			//tmp = &input[dot];
-			printf("\nfdgdfg");
+			//printf("\nfdgdfg");
 			//if(out_int == NULL)
 			//strcpy(out_int,input[dot]);
 			//printf("\nfdgdfg");
+			/*
+			 * This is for processing the individual charecters. like processing arun
+			 * */
 			if(change == NO){
 				COPY;
-			out = parsed_output(out,&tmp_);
-			strcpy(final_output_data,out);
+				parsed_output(&final_output_data,&tmp_);
+			//strcpy(final_output_data,out);
 			}
 			change = NO;
 			DOT_VALIDITY;
+			if(Increment_the_Dot==YES)
 			++dot;
 			/*if(input[dot] == 36){
 				printf("Regex Contains this regex only");
@@ -524,18 +780,29 @@ char *parseInput(const char *input){
 			//is $ char present ?
 			//End of File (EOF)
 			if(input[dot] == '\0'){
-				break;
+				goto RETURN;
 			}
 		}
 		//strcpy(final_output_data,out);
 		//exit_(EXIT_SUCCESS);
+		*final_output_data	 = NULL;
+		RETURN:
+		//printf("\nMinimum valid charecters  for this Regex : %d\n",Total_Chareters_min);
+		//printf("\nMaximum valid charecters  for this Regex : %d\n",Total_Chareters_max);
 		return final_output_data;
 
 
 	}
 }
+/*
+ * This function is responsible for formating the output.
+ * */
+char *format_output(const char *in){
 
+	}
 main(){
+	Regex : 
+	printf("Please Enter the Regex :");
 /*
 http://www.cs.tut.fi/~jkorpela/perl/regexp.html
 
@@ -572,6 +839,8 @@ Goal ::
 
 Example 1.
 ^(0[1-9]|1[012])[-/.](0[1-9]|[12][0-9]|3[01])[- /.]((19|20)\d\d)$
+^(0[1-9]|1[012])[-\.](0[1-9]|[12][0-9]|3[01])[-\.]((19|20)\d\d)$
+
 
 Let's for above Regex answer should be like that
 
@@ -685,6 +954,8 @@ Final Out put String
 //printf("\n\nasda\t%d\n\n",customized_Bracket_checker_("Arun|janana(dfdsf|DSfdsf)dsfdsf|",4,'|'));
 //printf("\n\nasda\t%d\n\n",customized_Bracket_checker_("Arun|janana(dfdsf|DSfds[|]fdfdsfsdf)|(dfsdf)sdfdsfdsf|",4,'|'));
 printf("\nOutput Result\n\n\n%s\n\n\n\n",parseInput(input));
+
+printf("\nInput\n\n\n%s\n\n\n\n",input);
 printf("**************************");
 printf("\nWelcome to Regex to Word");
 printf("\n**************************");
@@ -695,7 +966,7 @@ printf("\n2. \"or\" and \"and\" are just used for your understanding");
 printf("\n**************************");
 printf("\nPlease if you wanna  give me some feed back mail me on mail@arungupa.co.in\n");
 
-
+goto Regex;
 
 
 // to Test
@@ -704,5 +975,3 @@ printf("\nPlease if you wanna  give me some feed back mail me on mail@arungupa.c
 //for Example either A or B or C or D any but only one charecters
 return 0;
 }
-
-
